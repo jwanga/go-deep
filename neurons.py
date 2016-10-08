@@ -1,5 +1,7 @@
 import math
 import functools
+import numpy
+import random
 
 class LinearActivationFunction:
     '''
@@ -49,7 +51,7 @@ class HyperbolicTangentActivationFunction:
 
 class RectifiedLinearUnitActivationFunction:
     '''
-    Rectified Linear Unit activation functions scale linealy above a minimum threshold.
+    Rectified Linear Unit activation functions scale linearly above a minimum threshold.
     '''
     def compute(self, x):
         y = max(0, x)
@@ -74,6 +76,21 @@ class SoftmaxActivationFunction:
 
         return probabilities
     
+class HopefieldActivationFunction:
+    '''
+    Hopefield activation functions calulate a state of +1 or -1 based on the sum of the product of the neurons weights
+    and the states of the other neurons in the network.
+    '''
+    def compute(self, weights, pattern, threshold):
+        length = len(weights)
+        
+        #find the state/weight dot product
+        product = [weights[i] * pattern[i]
+                  for i in range(length)]
+        
+        sum_of_product = numpy.sum(product)
+        state = 1 if (sum_of_product > threshold) else 0
+        return state
     
 class Neuron(object):
     '''
@@ -90,7 +107,12 @@ class Neuron(object):
         dot_product = [input * self.weights[index] for index, input in  enumerate(inputs)]
         sum_of_dot_product = functools.reduce(lambda x,y : x + y, dot_product )
         return sum_of_dot_product + self.bias
-
+    
+    def __repr__(self):
+        '''
+        print neuron weights
+        '''
+        return repr(self.weights)
 
 
     
@@ -120,5 +142,40 @@ class SigmoidActivationNeuron(Neuron):
     
     def compute(self, inputs):
         return self.activation.compute(self.compute_inputs(inputs))
+    
+class HopefieldActivationNeuron(Neuron):
+    '''
+    A neuron that uses a sigmoid activation function.
+    '''
+    
+    def __init__(self, weights, bias):
+        super(HopefieldActivationNeuron, self).__init__(weights, bias)
+        self.activation = HopefieldActivationFunction()
+        self.threshold = 0
+        self.state = 0
+    
+    def compute(self, pattern):
+        self.state = self.activation.compute(self.weights, pattern, self.threshold)
+        return self.state
+    
+class BiasNeuron(Neuron):
+    '''
+    A bias neuron.
+    '''
+    
+    def __init__(self, bias):
+        '''
+        Bias eurons are instantiated with a bias. Usually 1.
+        '''
+        super(BiasNeuron, self).__init__([], bias)
+    
+    def compute(self, pattern):
+        return self.bias
+    
+    def __repr__(self):
+        '''
+        print bias
+        '''
+        return repr(self.bias)
     
 
