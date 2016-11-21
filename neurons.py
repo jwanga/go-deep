@@ -97,22 +97,49 @@ class Neuron(object):
     A base neuron that defines the weight and bias
     '''
     
-    def __init__(self, weights, bias):
+    def __init__(self, weights):
         #a vector contining a weight value for each input
         self.weights = weights
-        self.bias = bias
+        
+        #Holds the output error calculated by the back propagation algorithm
+        self.error = 0;
         
     def compute_inputs(self, inputs):
         #calculate a new vector that is the dot_product of the inputs and weights
         dot_product = [input * self.weights[index] for index, input in  enumerate(inputs)]
         sum_of_dot_product = functools.reduce(lambda x,y : x + y, dot_product )
-        return sum_of_dot_product + self.bias
+        return sum_of_dot_product
     
     def __repr__(self):
         '''
         print neuron weights
         '''
-        return repr(self.weights)
+        return repr(self.weights + [self.error])
+
+class LinearActivationNeuron(Neuron):
+    '''
+    A neuron that uses a step activation function.
+    '''
+    
+    def __init__(self, weights):
+        super(LinearActivationNeuron, self).__init__(weights)
+        self.activation = LinearActivationFunction()
+    
+    def compute(self, inputs):
+        return self.activation.compute(self.compute_inputs(inputs))
+    
+    
+class RectifiedLinearUnitActivationNeuron(Neuron):
+    '''
+    A neuron that uses a Rectified Linear activation function.
+    '''
+    
+    def __init__(self, weights):
+        super(RectifiedLinearUnitActivationNeuron, self).__init__(weights)
+        self.activation = RectifiedLinearUnitActivationFunction()
+    
+    def compute(self, inputs):
+        return self.activation.compute(self.compute_inputs(inputs))
 
 
     
@@ -121,8 +148,8 @@ class StepActivationNeuron(Neuron):
     A neuron that uses a step activation function.
     '''
     
-    def __init__(self, weights, bias):
-        super(StepActivationNeuron, self).__init__(weights, bias)
+    def __init__(self, weights):
+        super(StepActivationNeuron, self).__init__(weights)
         self.activation = StepActivationFunction()
     
     def compute(self, inputs):
@@ -136,9 +163,21 @@ class SigmoidActivationNeuron(Neuron):
     A neuron that uses a sigmoid activation function.
     '''
     
-    def __init__(self, weights, bias):
-        super(SigmoidActivationNeuron, self).__init__(weights, bias)
+    def __init__(self, weights):
+        super(SigmoidActivationNeuron, self).__init__(weights)
         self.activation = SigmoidActivationFunction()
+    
+    def compute(self, inputs):
+        return self.activation.compute(self.compute_inputs(inputs))
+    
+class  HyperbolicTangentNeuron(Neuron):
+    '''
+    A neuron that uses a Hyperbolic Tangent activation function.
+    '''
+    
+    def __init__(self, weights):
+        super(HyperbolicTangentNeuron, self).__init__(weights)
+        self.activation = HyperbolicTangentActivationFunction()
     
     def compute(self, inputs):
         return self.activation.compute(self.compute_inputs(inputs))
@@ -148,8 +187,8 @@ class HopefieldActivationNeuron(Neuron):
     A neuron that uses a sigmoid activation function.
     '''
     
-    def __init__(self, weights, bias):
-        super(HopefieldActivationNeuron, self).__init__(weights, bias)
+    def __init__(self, weights):
+        super(HopefieldActivationNeuron, self).__init__(weights)
         self.activation = HopefieldActivationFunction()
         self.threshold = 0
         self.state = 0
@@ -165,11 +204,12 @@ class BiasNeuron(Neuron):
     
     def __init__(self, bias):
         '''
-        Bias eurons are instantiated with a bias. Usually 1.
+        Bias neurons are instantiated with a bias. Usually 1.
         '''
-        super(BiasNeuron, self).__init__([], bias)
+        super(BiasNeuron, self).__init__([])
+        self.bias = bias
     
-    def compute(self, pattern):
+    def compute(self):
         return self.bias
     
     def __repr__(self):

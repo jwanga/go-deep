@@ -29,6 +29,36 @@ class Normalizer:
         self.training_data = training_data
         self.data = None
 
+class Range(Normalizer):
+    """ Range normalization returns normalizes data within a specific range to between 0 and 1. """
+    
+    def __init__(self, training_data = ()):
+        super(Range, self).__init__(training_data)
+        
+        # Create a min max tuple from the training data
+        self.min_max = (min(self.training_data), max(self.training_data))
+        self.data = self.normalize(training_data)
+        
+    def normalize(self, data):
+        """ Normalize the passed data.
+        
+        Args:
+            data: A numeric list or tuple matrix of data to be normalized.
+        
+        Returns:
+            A tuple matrix of normalized data.
+            
+        """
+        
+        # get difference
+        difference = self.min_max[1] - self.min_max[0]
+        reciprical = 1 / difference
+        
+        normalized_data = [ x * reciprical for x in data ]
+
+        normalized_tuple = tuple(normalized_data)
+        
+        return normalized_tuple        
 
 class ZScore(Normalizer):
     """ Z-Score normalization returns a tuple of values normalized to the number of standard deviations from the mean. """
@@ -47,7 +77,7 @@ class ZScore(Normalizer):
             data: A numeric list or tuple matrix of data to be normalized.
         
         Returns:
-            A tuple matrix of notmalized data.
+            A tuple matrix of normalized data.
             
         """
         
