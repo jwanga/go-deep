@@ -114,7 +114,7 @@ class Neuron(object):
         '''
         print neuron weights
         '''
-        return repr(self.weights + [self.error])
+        return repr({'weights': self.weights, 'error': self.error})
 
 class LinearActivationNeuron(Neuron):
     '''

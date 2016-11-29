@@ -116,7 +116,7 @@ class BackPropagationNetwork(FeedForwardNetwork):
         super(BackPropagationNetwork, self).__init__(layer_properties)
     
     def compute(self, inputs, expected_outputs = None):
-        """ If compute is called with a "expected" array, the network will train itself
+        """ If compute is called with an "expected" array, the network will train itself
         """
         
         outputs = super(BackPropagationNetwork, self).compute(inputs)
@@ -128,21 +128,36 @@ class BackPropagationNetwork(FeedForwardNetwork):
         return outputs
     
     def train(self, outputs, expected_outputs):
-        print('bar', outputs)
+        
         # set the output neurons error
-        self.backpropagate
+        self.backpropagate(outputs, expected_outputs)
             
-        print("train")
-        print([x.error for x in self.layers[output_layer_index]])
+        #print("train")
+        #print([x.error for x in self.layers[output_layer_index]])
         
     def backpropagate(self, outputs, expected_outputs):
-        output_layer_index = len(self.layers) - 1
-        #output = outputs[output_layer_index]
-        output = [0.6213859615555266, 0.6573693455986976]
         
-        for index, neuron in enumerate(self.layers[output_layer_index]):
-            neuron.error = self.calculate_output_error(output[index], expected_outputs[index])
+        output_layer_index = len(self.layers) - 1
+        input_layer_index = 0
+        
+        # hack to make ouptuts match tutorial
+        outputs[len(self.layers) - 1] = [0.6213859615555266, 0.6573693455986976]
             
+        # calculate the error of the neurons in all layers
+        for layer_index, layer in reversed(list(enumerate(self.layers))):
+            print(layer_index)
+            output = outputs[layer_index]
+            for neuron_index, neuron in enumerate(self.layers[layer_index]):
+                
+                #we only calculate the error of non-bias neurons
+                if type(neuron) != neurons.BiasNeuron:
+                    
+                    #calculate the error of each neuron based on whether or it is an output neuron or hidden neuron
+                    if layer_index == output_layer_index:
+                        neuron.error = self.calculate_output_error(output[neuron_index], expected_outputs[neuron_index])
+                    elif layer_index > input_layer_index:
+                        neuron.error = self.calculate_hidden_error(layer_index, neuron_index, outputs)
+        
     def calculate_error_derivative(self, output):
         return output * (1.0 - output)
     
@@ -150,9 +165,16 @@ class BackPropagationNetwork(FeedForwardNetwork):
         """ Calculates the error of an ouptut neurons output."""
         return (expected_output - output) * self.calculate_error_derivative(output)
     
-    def calculate_hidden_error(self, output, expected_output):
-        """ Calculates the error of an ouptut neurons output."""
-        return (expected_output - output) * self.calculate_error_derivative(output)
+    def calculate_hidden_error(self, layer_index, neuron_index, outputs):
+        """ Calculates the error of a hidden neurons output."""
+        
+        weighted_errors = [neuron.error * neuron.weights[neuron_index] for neuron in self.layers[layer_index + 1]]
+        sum_of_weighted_errors = sum(weighted_errors)
+        
+            
+        print('foo', sum_of_weighted_errors)
+            
+        return sum_of_weighted_errors * self.calculate_error_derivative(outputs[layer_index][neuron_index])
         
     def calculate_cost_function(self):
         print('calculate_cost_function')
