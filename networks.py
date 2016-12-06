@@ -128,7 +128,7 @@ class BackPropagationNetwork(FeedForwardNetwork):
         
         return outputs
     
-    def train(self, training_data, number_of_epochs):
+    def train(self, training_inputs, number_of_epochs):
         """Trains the network
         
         Trains the network on the passed training array over the defined number of epochs
@@ -136,17 +136,33 @@ class BackPropagationNetwork(FeedForwardNetwork):
         error stops decresing significantly.
         
         Args:
-            training_data: A matrix with rows representing individual trainig cases, columns
+            training_inputs: A matrix with rows representing training data, columns
             representing inputs and the last column representing a list of n expected_ouputs 
             win n = number outputs in the network.
             
             number_of_epochs: An integer representing the number of training iterations for 
             the passed dataset.
         """
-        for epoch in range(number_of_epochs):
+        for epoch in (range(number_of_epochs)):
             # we must reset the error sum each epoch
             sum_of_errors = 0
-            print("epoch: {0:<10} learning rate: {1:<15} error: {2:<10}".format(epoch + 1, self.network_properties.get("learning_rate"), sum_of_errors))
+            
+            for training_input in training_inputs:
+                # feed the inputs and expected outputs forward to compute outputs and neuron errors.
+                inputs = training_input[:-1]
+                expected_outputs = training_input[-1:][0]
+                
+                #get the outpts from the output layer
+                outputs = self.compute([inputs], [expected_outputs])[-1:][0]
+                
+                # calculate the mean squared error between the actual and expected outputs.
+                sum_of_errors += sum([(expected_outputs[i]-outputs[i])**2 for i in range(len(expected_outputs))])
+            
+            if number_of_epochs > 101 and epoch > 4 and epoch < number_of_epochs - 5:
+                if(epoch == 5):
+                    print("...")
+            else:
+                print("epoch: {0:<10} learning rate: {1:<15} error: {2:<10}".format(epoch + 1, self.network_properties.get("learning_rate"), sum_of_errors))
         
         
         
