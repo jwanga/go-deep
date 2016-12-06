@@ -9,8 +9,9 @@ class FeedForwardNetwork:
     Represents a feedforward network.
     """
     
-    def __init__(self, layer_properties):
+    def __init__(self, layer_properties, network_properties = {}):
         self.layer_properties = layer_properties
+        self.network_properties = network_properties
         
         self.__createLayers()
         
@@ -112,8 +113,8 @@ class FeedForwardNetwork:
 
 class BackPropagationNetwork(FeedForwardNetwork):
 
-    def __init__(self, layer_properties):
-        super(BackPropagationNetwork, self).__init__(layer_properties)
+    def __init__(self, layer_properties, network_properties):
+        super(BackPropagationNetwork, self).__init__(layer_properties, network_properties)
     
     def compute(self, inputs, expected_outputs = None):
         """ If compute is called with an "expected" array, the network will train itself
@@ -123,17 +124,31 @@ class BackPropagationNetwork(FeedForwardNetwork):
         
         if expected_outputs != None:
             for index, input in enumerate(inputs):
-                self.train(outputs, expected_outputs[index]);
+                self.backpropagate(outputs, expected_outputs[index]);
         
         return outputs
     
-    def train(self, outputs, expected_outputs):
+    def train(self, training_data, number_of_epochs):
+        """Trains the network
         
-        # set the output neurons error
-        self.backpropagate(outputs, expected_outputs)
+        Trains the network on the passed training array over the defined number of epochs
+        and prints the change in learning rate and error. The training is complete when the 
+        error stops decresing significantly.
+        
+        Args:
+            training_data: A matrix with rows representing individual trainig cases, columns
+            representing inputs and the last column representing a list of n expected_ouputs 
+            win n = number outputs in the network.
             
-        #print("train")
-        #print([x.error for x in self.layers[output_layer_index]])
+            number_of_epochs: An integer representing the number of training iterations for 
+            the passed dataset.
+        """
+        for epoch in range(number_of_epochs):
+            # we must reset the error sum each epoch
+            sum_of_errors = 0
+            print("epoch: {0:<10} learning rate: {1:<15} error: {2:<10}".format(epoch + 1, self.network_properties.get("learning_rate"), sum_of_errors))
+        
+        
         
     def backpropagate(self, outputs, expected_outputs):
         
@@ -141,11 +156,10 @@ class BackPropagationNetwork(FeedForwardNetwork):
         input_layer_index = 0
         
         # hack to make ouptuts match tutorial
-        outputs[len(self.layers) - 1] = [0.6213859615555266, 0.6573693455986976]
+        # outputs[len(self.layers) - 1] = [0.6213859615555266, 0.6573693455986976]
             
         # calculate the error of the neurons in all layers
         for layer_index, layer in reversed(list(enumerate(self.layers))):
-            print(layer_index)
             output = outputs[layer_index]
             for neuron_index, neuron in enumerate(self.layers[layer_index]):
                 
@@ -157,6 +171,10 @@ class BackPropagationNetwork(FeedForwardNetwork):
                         neuron.error = self.calculate_output_error(output[neuron_index], expected_outputs[neuron_index])
                     elif layer_index > input_layer_index:
                         neuron.error = self.calculate_hidden_error(layer_index, neuron_index, outputs)
+                        
+                    #Update the weights of all not input neurons
+                    if layer_index != input_layer_index:
+                        neuron.update_weights(self.network_properties.get("learning_rate"), outputs[layer_index - 1]);
         
     def calculate_error_derivative(self, output):
         return output * (1.0 - output)
@@ -170,13 +188,10 @@ class BackPropagationNetwork(FeedForwardNetwork):
         
         weighted_errors = [neuron.error * neuron.weights[neuron_index] for neuron in self.layers[layer_index + 1]]
         sum_of_weighted_errors = sum(weighted_errors)
-        
-            
-        print('foo', sum_of_weighted_errors)
             
         return sum_of_weighted_errors * self.calculate_error_derivative(outputs[layer_index][neuron_index])
         
     def calculate_cost_function(self):
         print('calculate_cost_function')
         
-        
+ 

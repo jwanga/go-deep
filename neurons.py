@@ -110,6 +110,21 @@ class Neuron(object):
         sum_of_dot_product = functools.reduce(lambda x,y : x + y, dot_product )
         return sum_of_dot_product
     
+    def update_weights(self, learning_rate, inputs):
+        """Updates the weights during training
+        
+        Calculates new weights for the neuron as a function of the current weights, the inputs into 
+        this neuron, the network learning rate and the neuron error
+        
+        Args:
+            learning_rate: A float representing the learning rate of the network.
+            inputs: A list representing the input into this neuron.
+  
+        """
+        
+        for index, weight in enumerate(self.weights):
+            self.weights[index] += learning_rate * self.error * inputs[index]
+    
     def __repr__(self):
         '''
         print neuron weights
